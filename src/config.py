@@ -15,3 +15,5 @@ class ApplicationConfig:
     SESSION_PERMANENT = False
     SESSION_USE_SIGNER = True
     SESSION_REDIS = redis.from_url("redis://127.0.0.1:6379")
+    SESSION_COOKIE_SAMESITE = "None" if os.environ.get("FLASK_ENV") == "development" else "Lax"
+    SESSION_COOKIE_SECURE = True if os.environ.get("FLASK_ENV") == "production" else False

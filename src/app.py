@@ -10,14 +10,13 @@ app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
 
 Bcrypt = Bcrypt(app)
-CORS(app, supoorts_credentials=True)
+CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
 server_session = Session(app)
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
 
-@cross_origin()
 @app.route('/@me', methods=['GET'])
 def get_current_user():
     user_id = session.get("user_id")
@@ -31,13 +30,16 @@ def get_current_user():
         return jsonify({"error": "User not found"}), 404
 
     return jsonify({"id": user.id,
+                    "firstName": user.firstName,
+                    "lastName": user.lastName,
                     "email": user.email})
 
-@cross_origin()
 @app.route('/register', methods=['POST'])
 def register_user():
     email = request.json.get('email')
     password = request.json.get('password')
+    first_name = request.json.get('firstName')
+    last_name = request.json.get('lastName')
 
     user_exists = User.query.filter_by(email=email).first() is not None
 
@@ -46,14 +48,13 @@ def register_user():
 
     hashed_password = Bcrypt.generate_password_hash(password).decode('utf-8')
 
-    new_user = User(email=email, password=hashed_password)
+    new_user = User(email=email, password=hashed_password, firstName=first_name, lastName=last_name)
     db.session.add(new_user)
     db.session.commit()
 
     return jsonify({"id": new_user.id,
                     "email": new_user.email})
 
-@cross_origin()
 @app.route('/login', methods=['POST'])
 def login_user():
     email = request.json.get('email')
@@ -73,4 +74,4 @@ def login_user():
                     "email": user.email})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='localhost', debug=True, port=5000)
